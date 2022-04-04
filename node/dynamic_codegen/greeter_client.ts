@@ -19,7 +19,7 @@
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import { ProtoGrpcType } from '../proto/helloworld';
-import { HelloRequest } from '../proto/helloworld/HelloRequest';
+import { HelloReply } from '../proto/helloworld/HelloReply';
 
 var parseArgs = require('minimist');
 var packageDefinition = protoLoader.loadSync(
@@ -52,11 +52,21 @@ function main() {
   } else {
     user = 'world';
   }
-  client.sayHello({name: user}, function(err, response) {
-    console.log('Greeting:', response.message);
+  client.sayHello({name: user},
+    (err?: grpc.ServiceError, HelloReply?: HelloReply) => {
+      if (err) {
+        console.error(err.message);
+      }else if (HelloReply) {
+        console.log('Greeting:', HelloReply.message);
+      }
   });
-  client.sayHelloAgain({name: 'you'}, function(err, response) {
-    console.log('Greeting:', response.message);
+  client.sayHelloAgain({name: 'you'},
+    (err?: grpc.ServiceError, HelloReply?: HelloReply) => {
+      if (err) {
+        console.error(err.message);
+      }else if (HelloReply) {
+        console.log('Greeting:', HelloReply.message);
+      }
   });
 }
 
