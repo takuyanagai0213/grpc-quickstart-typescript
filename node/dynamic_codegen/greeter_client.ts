@@ -16,20 +16,20 @@
  *
  */
 
-var PROTO_PATH = __dirname + '/../../protos/helloworld.proto';
+import * as grpc from '@grpc/grpc-js';
+import * as protoLoader from '@grpc/proto-loader';
+import { ProtoGrpcType } from '../proto/helloworld';
+import { HelloRequest } from '../proto/helloworld/HelloRequest';
 
 var parseArgs = require('minimist');
-var grpc = require('@grpc/grpc-js');
-var protoLoader = require('@grpc/proto-loader');
 var packageDefinition = protoLoader.loadSync(
-    PROTO_PATH,
+    '../proto/helloworld.proto',
     {keepCase: true,
      longs: String,
      enums: String,
      defaults: true,
      oneofs: true
     });
-var hello_proto = grpc.loadPackageDefinition(packageDefinition).helloworld;
 
 function main() {
   var argv = parseArgs(process.argv.slice(2), {
@@ -41,7 +41,10 @@ function main() {
   } else {
     target = 'localhost:50051';
   }
-  var client = new hello_proto.Greeter(target,
+
+  const hello_proto = grpc.loadPackageDefinition(packageDefinition) as unknown as ProtoGrpcType;;
+
+  var client = new hello_proto.helloworld.Greeter(target,
                                        grpc.credentials.createInsecure());
   var user;
   if (argv._.length > 0) {
