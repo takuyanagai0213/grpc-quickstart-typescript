@@ -16,45 +16,34 @@
  *
  */
 
-var PROTO_PATH = __dirname + '/../../protos/helloworld.proto';
-
-
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
-// import { ProtoGrpcType } from './proto/example';
-import { ClientMessage } from '../protos/helloworld/HelloRequest';
-// import { ExampleHandlers } from './proto/helloworld/Example';
-import { ServerMessage } from '../protos/helloworld/HelloReply';
+import { ProtoGrpcType } from '../proto/helloworld';
+import { HelloRequest } from '../proto/helloworld/HelloRequest';
+import { GreeterHandlers } from '../proto/helloworld/Greeter';
+import { HelloReply } from '../proto/helloworld/HelloReply';
 
-var packageDefinition = protoLoader.loadSync(
-    PROTO_PATH,
-    {keepCase: true,
-     longs: String,
-     enums: String,
-     defaults: true,
-     oneofs: true
-    });
-var hello_proto = grpc.loadPackageDefinition(packageDefinition).helloworld;
-
-/**
- * Implements the SayHello RPC method.
- */
-function sayHello(
-    call: grpc.ServerUnaryCall<ClientMessage, ServerMessage>,
-    callback: grpc.sendUnaryData<ServerMessage>
+const greeterServer: GreeterHandlers = {
+  /**
+   * Implements the SayHello RPC method.
+   */
+  SayHello(
+    call: grpc.ServerUnaryCall<HelloRequest, HelloReply>,
+    callback: grpc.sendUnaryData<HelloReply>
   ) {
     callback(null, {
       message: 'Hello ' + call.request.name
     });
-}
+  },
 
-function sayHelloAgain(
-    call: grpc.ServerUnaryCall<ClientMessage, ServerMessage>,
-    callback: grpc.sendUnaryData<ServerMessage>
+  SayHelloAgain(
+    call: grpc.ServerUnaryCall<HelloRequest, HelloReply>,
+    callback: grpc.sendUnaryData<HelloReply>
   ) {
     callback(null,{
         message: 'Hello again, ' + call.request.name
     });
+  }
 }
 
 /**
@@ -62,8 +51,18 @@ function sayHelloAgain(
  * sample server port
  */
 function main() {
-  var server = new grpc.Server();
-  server.addService(hello_proto.Greeter.service, {sayHello: sayHello, sayHelloAgain: sayHelloAgain});
+  const server = new grpc.Server();
+  const packageDefinition = protoLoader.loadSync(
+    '../proto/helloworld.proto',
+    {keepCase: true,
+     longs: String,
+     enums: String,
+     defaults: true,
+     oneofs: true
+  });
+  const hello_proto = grpc.loadPackageDefinition(packageDefinition) as unknown as ProtoGrpcType;;
+
+  server.addService(hello_proto.helloworld.Greeter.service, greeterServer);
   server.bindAsync('0.0.0.0:50051', grpc.ServerCredentials.createInsecure(), () => {
     server.start();
   });
